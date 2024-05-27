@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<!--
+SPDX-FileCopyrightText: 2024 Julien Lambé <julien@themosis.com>
+
+SPDX-License-Identifier: GPL-3.0-or-later
+-->
+
+<ruleset name="Themosis">
+    <!-- Main -->
+    <description>Themosis coding standard</description>
+
+    <!-- Files -->
+    <file>./src</file>
+    <file>./tests</file>
+
+    <!-- Configuration -->
+    <arg name="extensions" value="php"/>
+    <arg name="colors"/>
+    <arg name="tab-width" value="4"/>
+
+    <!-- Code Rules -->
+    <rule ref="WordPress-Core">
+        <exclude name="WordPress.WP.ClassNameCase"/>
+        <exclude name="WordPress.Files.FileName"/>
+        <exclude name="Universal.Arrays.DisallowShortArraySyntax"/>
+        <exclude name="Universal.Operators.DisallowShortTernary"/>
+    </rule>
+
+    <rule ref="Generic.CodeAnalysis.UnusedFunctionParameter"/>
+
+    <rule ref="Generic.PHP.RequireStrictTypes"/>
+
+    <rule ref="PSR12.Classes.OpeningBraceSpace"/>
+    <rule ref="PSR12.Files.DeclareStatement"/>
+
+    <rule ref="Squiz.Classes.ClassFileName"/>
+
+    <rule ref="Universal.Classes.RequireFinalClass"/>
+</ruleset>
+
