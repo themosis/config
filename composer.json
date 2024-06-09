@@ -21,8 +21,15 @@
             "Themosis\\Components\\Config\\Tests\\": "tests/"
         }
     },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../filesystem"
+        }
+    ],
     "require": {
-        "php": "^8.2"
+        "php": "^8.2",
+        "themosis/filesystem": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^11.1"

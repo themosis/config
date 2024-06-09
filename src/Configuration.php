@@ -8,7 +8,5 @@ declare(strict_types=1);
 
 namespace Themosis\Components\Config;
 
-interface Configuration
-{
-    
+interface Configuration {
 }
