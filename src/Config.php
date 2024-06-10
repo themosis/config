@@ -11,13 +11,18 @@ namespace Themosis\Components\Config;
 use Themosis\Components\Config\Reader\Reader;
 
 final class Config implements Configuration {
+	/**
+	 * @var array<mixed>
+	 */
+	private array $values;
+
 	public function __construct(
 		private Reader $reader,
 	) {
 	}
 
 	public function get( ?string $path = null, mixed $fallback = null ): mixed {
-		$array = $this->reader->read();
+		$array = $this->get_values_from_reader();
 
 		if ( null === $path ) {
 			return $array;
@@ -42,5 +47,16 @@ final class Config implements Configuration {
 		}
 
 		return $array;
+	}
+
+	/**
+	 * @return array<mixed>
+	 */
+	private function get_values_from_reader(): array {
+		if ( ! isset( $this->values ) ) {
+			$this->values = $this->reader->read();
+		}
+
+		return $this->values;
 	}
 }

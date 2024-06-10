@@ -10,23 +10,19 @@ namespace Themosis\Components\Config\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use Themosis\Components\Config\Config;
-use Themosis\Components\Config\Reader\EnvReader;
+use Themosis\Components\Config\Reader\GlobalsReader;
 
-final class EnvConfigurationTest extends TestCase {
-	public function tearDown(): void {
-		$_ENV = [];
-	}
-
+final class GlobalsConfigurationTest extends TestCase {
 	#[Test]
-	public function it_can_read_configuration_property_from_global_environment(): void {
-		$_ENV['foo'] = 'bar';
-		$_ENV['app'] = [
+	public function it_can_read_configuration_property_from_php_globals(): void {
+		$GLOBALS['foo'] = 'bar';
+		$GLOBALS['app'] = [
 			'name'    => 'Themosis',
 			'debug'   => true,
 			'version' => 1.0,
 		];
 
-		$reader = new EnvReader();
+		$reader = new GlobalsReader();
 
 		$config = new Config( reader: $reader );
 
@@ -39,7 +35,9 @@ final class EnvConfigurationTest extends TestCase {
 
 	#[Test]
 	public function it_can_fallback_if_property_is_not_found(): void {
-		$reader = new EnvReader();
+		unset( $GLOBALS['foo'] );
+
+		$reader = new GlobalsReader();
 
 		$config = new Config( reader: $reader );
 
