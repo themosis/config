@@ -1,11 +1,17 @@
 <?php
 
+// SPDX-FileCopyrightText: 2024 Julien Lambé <julien@themosis.com>
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 declare(strict_types=1);
 
 namespace Themosis\Components\Config\Tests;
 
 use PHPUnit\Framework\Attributes\Test;
 use Themosis\Components\Config\Config;
+use Themosis\Components\Config\Exceptions\ConfigurationNotFound;
+use Themosis\Components\Config\Exceptions\InvalidConfiguration;
 use Themosis\Components\Config\Reader\JsonReader;
 use Themosis\Components\Filesystem\LocalFilesystem;
 
@@ -41,5 +47,29 @@ final class JsonConfigurationTest extends TestCase {
 		$this->assertIsArray( $config->get( 'customTemplates' ) );
 		$this->assertIsArray( $config->get( 'templateParts' ) );
 		$this->assertIsArray( $config->get( 'patterns' ) );
+	}
+
+	#[Test]
+	public function it_can_not_read_configuration_if_file_does_not_exist(): void {
+		$reader = new JsonReader( new LocalFilesystem() );
+		$reader->from_file( 'path/does/not/exist.json' );
+
+		$config = new Config( reader: $reader );
+
+		$this->expectException( ConfigurationNotFound::class );
+
+		$config->get();
+	}
+
+	#[Test]
+	public function it_can_not_read_configuration_from_invalid_formatted_json(): void {
+		$reader = new JsonReader( new LocalFilesystem() );
+		$reader->from_file( __DIR__ . '/fixtures/invalid.json' );
+
+		$config = new Config( reader: $reader );
+
+		$this->expectException( InvalidConfiguration::class );
+
+		$config->get();
 	}
 }
