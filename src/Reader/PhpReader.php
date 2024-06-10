@@ -20,10 +20,14 @@ final class PhpReader implements Reader, Source {
 		$this->filepath = $filepath;
 	}
 
+	/**
+	 * @return array<mixed>
+	 */
 	public function read(): array {
 		$values = [];
 
 		try {
+			/** @var array<mixed> $values */
 			$values = $this->filesystem->require( $this->filepath );
 		} catch ( InvalidFileException $exception ) {
 			throw new ConfigurationNotFound(
