@@ -12,7 +12,7 @@ use Themosis\Components\Config\Exceptions\ConfigurationNotFound;
 use Themosis\Components\Filesystem\Exceptions\InvalidFileException;
 use Themosis\Components\Filesystem\Filesystem;
 
-final class PhpReader implements Reader, Source {
+final class PhpReader implements Reader, FileSource {
 	private string $filepath;
 
 	public function __construct(

@@ -8,6 +8,6 @@ declare(strict_types=1);
 
 namespace Themosis\Components\Config\Reader;
 
-interface Source {
+interface FileSource {
 	public function from_file( string $filepath ): void;
 }

@@ -15,7 +15,7 @@ use Themosis\Components\Filesystem\Exceptions\FileDoesNotExist;
 use Themosis\Components\Filesystem\Exceptions\ReadFileException;
 use Themosis\Components\Filesystem\Filesystem;
 
-final class JsonReader implements Reader, Source {
+final class JsonReader implements Reader, FileSource {
 	private string $filepath;
 
 	public function __construct(
