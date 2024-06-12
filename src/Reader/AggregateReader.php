@@ -50,7 +50,10 @@ final class AggregateReader implements DirectoryReader {
 		);
 
 		foreach ( $iterator as $filepath => $file ) {
-			/** @var SplFileInfo $file */
+			/**
+			 * @var string $filepath
+			 * @var SplFileInfo $file
+			 */
 			$basename = pathinfo( $file->getFilename(), PATHINFO_FILENAME );
 			$reader   = $this->readers->find( new ReaderKey( $file->getExtension() ) );
 			$reader->from_file( $filepath );

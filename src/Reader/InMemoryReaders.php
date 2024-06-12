@@ -11,6 +11,9 @@ namespace Themosis\Components\Config\Reader;
 use Themosis\Components\Config\Exceptions\ReaderNotFound;
 
 final class InMemoryReaders implements Readers {
+	/**
+	 * @var array<string, FileReader>
+	 */
 	private array $readers = [];
 
 	public function add( ReaderKey $key, FileReader $reader ): void {
