@@ -1,12 +1,17 @@
 <?php
 
+// SPDX-FileCopyrightText: 2024 Julien Lambé <julien@themosis.com>
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
+// phpcs:ignoreFile
 return [
-    'default' => 'sqlite',
-    'connections' => [
-        'sqlite' => [
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-            'prefix' => '',
-        ],
-    ],
+	'default'     => 'sqlite',
+	'connections' => [
+		'sqlite' => [
+			'driver'   => 'sqlite',
+			'database' => ':memory:',
+			'prefix'   => '',
+		],
+	],
 ];

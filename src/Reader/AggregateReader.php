@@ -1,53 +1,63 @@
 <?php
 
+// SPDX-FileCopyrightText: 2024 Julien Lambé <julien@themosis.com>
+//
+// SPDX-License-Identifier: GPL-3.0-or-later
+
 declare(strict_types=1);
 
 namespace Themosis\Components\Config\Reader;
 
+use FilesystemIterator;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use SplFileInfo;
+use Themosis\Components\Config\Exceptions\InvalidConfigurationDirectory;
 use Themosis\Components\Filesystem\Filesystem;
 
-final class AggregateReader implements Reader, DirectorySource
-{
-    private string $directory_path;
+final class AggregateReader implements DirectoryReader {
+	private string $directory_path;
 
-    public function __construct(
-        private Filesystem $filesystem,
-        private iterable $readers,
-    ) {
-    }
+	public function __construct(
+		private Filesystem $filesystem,
+		private Readers $readers,
+	) {
+	}
 
-    public function from_directory(string $directory_path): void {
-    
-        if (! $this->filesystem->is_directory( $directory_path )) {
-            // TODO: throw exception and complain about invalid directory path?
-        }
+	public function from_directory( string $directory_path ): void {
 
-        $this->directory_path = $directory_path;
-    }
+		if ( ! $this->filesystem->is_directory( $directory_path ) ) {
+			throw new InvalidConfigurationDirectory(
+				message: sprintf( 'Invalid directory path given: %s', $directory_path ),
+			);
+		}
 
-    public function read(): array {
-        // 1. Loop through all files in the directory.
-        // 2. Call the associated reader on each file and retrieve the values.
-        // 3. Get file basename as key.
-        // 4. Merge configuration values under the file basename key.
-        // 5. Return the concatenated configuration values.
-        $values = [];
+		$this->directory_path = $directory_path;
+	}
 
-        // TODO: experiment with SPL RecursiveDirectoryIterator, ..
-        // TODO: verify glob flags usage
-        foreach ( glob( $this->directory_path ) as $filename ) {
-            $extension = pathinfo( $filename, PATHINFO_EXTENSION );
-            $basename = basename( $filename, ".{$extension}" ); 
+	/**
+	 * @return array<string, mixed>
+	 */
+	public function read(): array {
+		$values = [];
 
-            // Raw test for handling readers... would need some sort of specification to resolve them based on extension...
-            foreach ( $this->readers as $reader ) {
-                if ( $extension === 'php' && $reader instanceof PhpReader ) {
-                    $reader->from_file( $filename );
-                    $values[$basename] = $reader->read();
-                }
-            }
-        }
+		$iterator = new RecursiveIteratorIterator(
+			iterator: new RecursiveDirectoryIterator(
+				directory: $this->directory_path,
+				flags: FilesystemIterator::CURRENT_AS_FILEINFO | FilesystemIterator::KEY_AS_PATHNAME | FilesystemIterator::SKIP_DOTS,
+			),
+			mode: RecursiveIteratorIterator::LEAVES_ONLY,
+		);
 
-        return $values;
-    }
+		foreach ( $iterator as $filepath => $file ) {
+			/** @var SplFileInfo $file */
+			$basename = pathinfo( $file->getFilename(), PATHINFO_FILENAME );
+			$reader   = $this->readers->find( new ReaderKey( $file->getExtension() ) );
+			$reader->from_file( $filepath );
+
+			$values[ $basename ] = $reader->read();
+		}
+
+		return $values;
+	}
 }
