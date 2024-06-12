@@ -25,7 +25,6 @@ final class AggregateReader implements DirectoryReader {
 	}
 
 	public function from_directory( string $directory_path ): void {
-
 		if ( ! $this->filesystem->is_directory( $directory_path ) ) {
 			throw new InvalidConfigurationDirectory(
 				message: sprintf( 'Invalid directory path given: %s', $directory_path ),
