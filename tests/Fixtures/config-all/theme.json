@@ -1,0 +1,8 @@
+{
+    "name": "Theme",
+    "description": "A theme configuration.",
+    "version": 3,
+    "settings": {
+        "appearanceTools": false
+    }
+}

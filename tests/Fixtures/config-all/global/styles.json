@@ -1,0 +1,11 @@
+{
+    "styles": {
+        "colors": [
+            {
+                "name": "Primary",
+                "color": "#3490dc",
+                "slug": "primary"
+            }    
+        ]
+    }
+}

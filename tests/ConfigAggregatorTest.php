@@ -14,6 +14,7 @@ use Themosis\Components\Config\Exceptions\InvalidConfigurationDirectory;
 use Themosis\Components\Config\Exceptions\ReaderNotFound;
 use Themosis\Components\Config\Reader\AggregateReader;
 use Themosis\Components\Config\Reader\InMemoryReaders;
+use Themosis\Components\Config\Reader\JsonReader;
 use Themosis\Components\Config\Reader\PhpReader;
 use Themosis\Components\Config\Reader\ReaderKey;
 use Themosis\Components\Filesystem\LocalFilesystem;
@@ -89,5 +90,34 @@ final class ConfigAggregatorTest extends TestCase {
 		$this->expectException( ReaderNotFound::class );
 
 		$config->get( 'app.name' );
+	}
+
+	#[Test]
+	public function it_can_aggregate_configuration_from_php_and_json_files(): void {
+		$readers = new InMemoryReaders();
+		$readers->add( new ReaderKey( 'php' ), new PhpReader( new LocalFilesystem() ) );
+		$readers->add( new ReaderKey( 'json' ), new JsonReader( new LocalFilesystem() ) );
+
+		$reader = new AggregateReader(
+			filesystem: new LocalFilesystem(),
+			readers: $readers,
+		);
+
+		$reader->from_directory( __DIR__ . '/fixtures/config-all' );
+
+		$config = new Config( reader: $reader );
+
+		$this->assertSame( 'Themosis', $config->get( 'app.name' ) );
+		$this->assertTrue( $config->get( 'app.debug' ) );
+
+		$this->assertSame( 'Theme', $config->get( 'theme.name' ) );
+		$this->assertSame( 'A theme configuration.', $config->get( 'theme.description' ) );
+		$this->assertSame( 3, $config->get( 'theme.version' ) );
+		$this->assertFalse( $config->get( 'theme.settings.appearanceTools' ) );
+
+		$this->assertIsArray( $config->get( 'styles' ) );
+		$this->assertSame( 'Primary', $config->get( 'styles.styles.colors.0.name' ) );
+		$this->assertSame( '#3490dc', $config->get( 'styles.styles.colors.0.color' ) );
+		$this->assertSame( 'primary', $config->get( 'styles.styles.colors.0.slug' ) );
 	}
 }
