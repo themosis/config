@@ -46,4 +46,30 @@ final class GlobalsConfigurationTest extends TestCase {
 		$this->assertTrue( $config->get( 'foo', true ) );
 		$this->assertFalse( $config->get( 'foo', false ) );
 	}
+
+	#[Test]
+	public function it_can_refresh_configuration_values_if_globals_are_changed(): void {
+		$GLOBALS['first']  = 'foo';
+		$GLOBALS['second'] = 42;
+
+		$reader = new GlobalsReader();
+
+		$config = new Config(
+			reader: $reader,
+		);
+
+		$this->assertSame( 'foo', $config->get( 'first' ) );
+		$this->assertSame( 42, $config->get( 'second' ) );
+
+		$GLOBALS['first']  = 'bar';
+		$GLOBALS['second'] = 24;
+
+		$this->assertSame( 'foo', $config->get( 'first' ) );
+		$this->assertSame( 42, $config->get( 'second' ) );
+
+		$config = $config->refresh();
+
+		$this->assertSame( 'bar', $config->get( 'first' ) );
+		$this->assertSame( 24, $config->get( 'second' ) );
+	}
 }

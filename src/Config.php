@@ -49,6 +49,12 @@ final class Config implements Configuration {
 		return $array;
 	}
 
+	public function refresh(): Configuration {
+		return new self(
+			reader: $this->reader,
+		);
+	}
+
 	/**
 	 * @return array<mixed>
 	 */
