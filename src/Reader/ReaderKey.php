@@ -17,6 +17,16 @@ final class ReaderKey implements Stringable {
 		$this->file_extension = trim( $file_extension, " \n\r\t\v\0." );
 	}
 
+	public function equals( ReaderKey ...$others ): bool {
+		foreach ( $others as $other ) {
+			if ( $this->file_extension === $other->file_extension ) {
+				return true;
+			}
+		}
+
+		return false;
+	}
+
 	public function __toString(): string {
 		return $this->file_extension;
 	}

@@ -23,6 +23,7 @@ final class InMemoryReaders implements Readers {
 	public function find( ReaderKey $key ): FileReader {
 		if ( ! isset( $this->readers[ (string) $key ] ) ) {
 			throw new ReaderNotFound(
+				key: $key,
 				message: sprintf( 'Reader not found for key with extension %s', (string) $key ),
 			);
 		}

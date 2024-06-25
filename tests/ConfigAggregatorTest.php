@@ -93,7 +93,7 @@ final class ConfigAggregatorTest extends TestCase {
 	}
 
 	#[Test]
-	public function it_can_aggregate_configuration_from_php_and_json_files(): void {
+	public function it_can_aggregate_configuration_from_php_and_json_files_and_fail_on_license_files(): void {
 		$readers = new InMemoryReaders();
 		$readers->add( new ReaderKey( 'php' ), new PhpReader( new LocalFilesystem() ) );
 		$readers->add( new ReaderKey( 'json' ), new JsonReader( new LocalFilesystem() ) );
@@ -102,6 +102,28 @@ final class ConfigAggregatorTest extends TestCase {
 			filesystem: new LocalFilesystem(),
 			readers: $readers,
 		);
+
+		$reader->from_directory( __DIR__ . '/fixtures/config-all' );
+
+		$config = new Config( reader: $reader );
+
+		$this->expectException( ReaderNotFound::class );
+
+		$config->get( 'app.name' );
+	}
+
+	#[Test]
+	public function it_can_aggregate_configuration_from_php_and_json_files_while_ignoring_license_files(): void {
+		$readers = new InMemoryReaders();
+		$readers->add( new ReaderKey( 'php' ), new PhpReader( new LocalFilesystem() ) );
+		$readers->add( new ReaderKey( 'json' ), new JsonReader( new LocalFilesystem() ) );
+
+		$reader = new AggregateReader(
+			filesystem: new LocalFilesystem(),
+			readers: $readers,
+		);
+
+		$reader->ignore_reader( new ReaderKey( 'license' ) );
 
 		$reader->from_directory( __DIR__ . '/fixtures/config-all' );
 

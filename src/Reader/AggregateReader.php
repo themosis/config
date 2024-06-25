@@ -13,15 +13,27 @@ use RecursiveDirectoryIterator;
 use RecursiveIteratorIterator;
 use SplFileInfo;
 use Themosis\Components\Config\Exceptions\InvalidConfigurationDirectory;
+use Themosis\Components\Config\Exceptions\ReaderNotFound;
 use Themosis\Components\Filesystem\Filesystem;
 
 final class AggregateReader implements DirectoryReader {
 	private string $directory_path;
 
+	/**
+	 * @var array<int,ReaderKey>
+	 */
+	private array $readers_to_ignore = [];
+
 	public function __construct(
 		private Filesystem $filesystem,
 		private Readers $readers,
 	) {
+	}
+
+	public function ignore_reader( ReaderKey $key ): self {
+		$this->readers_to_ignore[] = $key;
+
+		return $this;
 	}
 
 	public function from_directory( string $directory_path ): void {
@@ -54,12 +66,26 @@ final class AggregateReader implements DirectoryReader {
 			 * @var SplFileInfo $file
 			 */
 			$basename = pathinfo( $file->getFilename(), PATHINFO_FILENAME );
-			$reader   = $this->readers->find( new ReaderKey( $file->getExtension() ) );
+
+			try {
+				$reader = $this->readers->find( new ReaderKey( $file->getExtension() ) );
+			} catch ( ReaderNotFound $exception ) {
+				if ( $this->reader_should_be_ignored( $exception->key ) ) {
+					continue;
+				}
+
+				throw $exception;
+			}
+
 			$reader->from_file( $filepath );
 
 			$values[ $basename ] = $reader->read();
 		}
 
 		return $values;
+	}
+
+	private function reader_should_be_ignored( ReaderKey $key ): bool {
+		return $key->equals( ...$this->readers_to_ignore );
 	}
 }
