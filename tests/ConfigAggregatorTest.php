@@ -12,6 +12,7 @@ use PHPUnit\Framework\Attributes\Test;
 use Themosis\Components\Config\Config;
 use Themosis\Components\Config\Exceptions\InvalidConfigurationDirectory;
 use Themosis\Components\Config\Exceptions\ReaderNotFound;
+use Themosis\Components\Config\Exceptions\UnsupportedReader;
 use Themosis\Components\Config\Reader\AggregateReader;
 use Themosis\Components\Config\Reader\InMemoryReaders;
 use Themosis\Components\Config\Reader\JsonReader;
@@ -87,7 +88,7 @@ final class ConfigAggregatorTest extends TestCase {
 
 		$config = new Config( reader: $reader );
 
-		$this->expectException( ReaderNotFound::class );
+		$this->expectException( UnsupportedReader::class );
 
 		$config->get( 'app.name' );
 	}
@@ -107,7 +108,7 @@ final class ConfigAggregatorTest extends TestCase {
 
 		$config = new Config( reader: $reader );
 
-		$this->expectException( ReaderNotFound::class );
+		$this->expectException( UnsupportedReader::class );
 
 		$config->get( 'app.name' );
 	}

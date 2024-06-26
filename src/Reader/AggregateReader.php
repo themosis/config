@@ -14,6 +14,7 @@ use RecursiveIteratorIterator;
 use SplFileInfo;
 use Themosis\Components\Config\Exceptions\InvalidConfigurationDirectory;
 use Themosis\Components\Config\Exceptions\ReaderNotFound;
+use Themosis\Components\Config\Exceptions\UnsupportedReader;
 use Themosis\Components\Filesystem\Filesystem;
 
 final class AggregateReader implements DirectoryReader {
@@ -74,7 +75,11 @@ final class AggregateReader implements DirectoryReader {
 					continue;
 				}
 
-				throw $exception;
+				throw new UnsupportedReader(
+					message: sprintf( 'Unsupported configuration file found in aggregate reader: %s', (string) $exception->key ),
+					code: 0,
+					previous: $exception,
+				);
 			}
 
 			$reader->from_file( $filepath );
