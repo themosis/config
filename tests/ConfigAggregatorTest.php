@@ -138,9 +138,14 @@ final class ConfigAggregatorTest extends TestCase {
 		$this->assertSame( 3, $config->get( 'theme.version' ) );
 		$this->assertFalse( $config->get( 'theme.settings.appearanceTools' ) );
 
-		$this->assertIsArray( $config->get( 'styles' ) );
-		$this->assertSame( 'Primary', $config->get( 'styles.styles.colors.0.name' ) );
-		$this->assertSame( '#3490dc', $config->get( 'styles.styles.colors.0.color' ) );
-		$this->assertSame( 'primary', $config->get( 'styles.styles.colors.0.slug' ) );
+		$this->assertIsArray( $config->get( 'global.styles' ) );
+		$this->assertSame( 'Primary', $config->get( 'global.styles.styles.colors.0.name' ) );
+		$this->assertSame( '#3490dc', $config->get( 'global.styles.styles.colors.0.color' ) );
+		$this->assertSame( 'primary', $config->get( 'global.styles.styles.colors.0.slug' ) );
+
+		$this->assertIsArray( $config->get( 'global.themes' ) );
+		$this->assertIsArray( $config->get( 'global.themes.menu' ) );
+		$this->assertSame( 'Main Menu', $config->get( 'global.themes.menu.primary' ) );
+		$this->assertSame( 'Secondary Menu', $config->get( 'global.themes.menu.sidebar' ) );
 	}
 }

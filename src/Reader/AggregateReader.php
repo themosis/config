@@ -66,8 +66,6 @@ final class AggregateReader implements DirectoryReader {
 			 * @var string $filepath
 			 * @var SplFileInfo $file
 			 */
-			$basename = pathinfo( $file->getFilename(), PATHINFO_FILENAME );
-
 			try {
 				$reader = $this->readers->find( new ReaderKey( $file->getExtension() ) );
 			} catch ( ReaderNotFound $exception ) {
@@ -84,10 +82,62 @@ final class AggregateReader implements DirectoryReader {
 
 			$reader->from_file( $filepath );
 
-			$values[ $basename ] = $reader->read();
+			$values = array_merge_recursive(
+				$values,
+				$this->get_configuration_values_for_file(
+					file: $file,
+					file_values: $reader->read()
+				),
+			);
 		}
 
 		return $values;
+	}
+
+	/**
+	 * @param SplFileInfo $file
+	 * @param array<string, mixed> $file_values
+	 *
+	 * @return array<string, mixed>
+	 */
+	private function get_configuration_values_for_file( SplFileInfo $file, array $file_values ): array {
+		return array_reduce(
+			$this->get_prefix_parts_for_configuration_file( $file ),
+			function ( array $carry, string $part ) {
+				$carry = [ $part => $carry ];
+
+				return $carry;
+			},
+			$file_values,
+		);
+	}
+
+	/**
+	 * @param SplFileInfo $file
+	 *
+	 * @return array<int, string>
+	 */
+	private function get_prefix_parts_for_configuration_file( SplFileInfo $file ): array {
+		/**
+		 * $prefix can be one of these values:
+		 * - "" (empty string)
+		 * - "directory"
+		 * - "directory/child-directory"
+		 * - "directory/child-directory/grand-child-directory/..."
+		 *
+		 * The $prefix contains the parts found between the configuration file path and the
+		 * root directory. We need to nest the configuration values based on the directory
+		 * hierarchy. So instead of setting it up from top level to bottom level, we do the reverse
+		 * by building the nested array from the bottom up.
+		 */
+		$prefix       = trim( str_replace( $this->directory_path, '', $file->getPath() ), '\/ ' );
+		$prefix_parts = array_filter( explode( DIRECTORY_SEPARATOR, $prefix ) );
+
+		$basename = pathinfo( $file->getFilename(), PATHINFO_FILENAME );
+
+		array_push( $prefix_parts, $basename );
+
+		return array_reverse( $prefix_parts );
 	}
 
 	private function reader_should_be_ignored( ReaderKey $key ): bool {
