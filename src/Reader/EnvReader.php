@@ -8,11 +8,13 @@ declare(strict_types=1);
 
 namespace Themosis\Components\Config\Reader;
 
-final class EnvReader implements Reader {
-	/**
-	 * @return array<mixed>
-	 */
-	public function read(): array {
-		return $_ENV;
-	}
+final class EnvReader implements Reader
+{
+    /**
+     * @return array<mixed>
+     */
+    public function read(): array
+    {
+        return $_ENV;
+    }
 }

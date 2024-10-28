@@ -8,8 +8,9 @@ declare(strict_types=1);
 
 namespace Themosis\Components\Config;
 
-interface Configuration {
-	public function get( ?string $path = null, mixed $fallback = null ): mixed;
+interface Configuration
+{
+    public function get(?string $path = null, mixed $fallback = null): mixed;
 
-	public function refresh(): Configuration;
+    public function refresh(): Configuration;
 }

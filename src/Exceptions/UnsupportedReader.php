@@ -10,5 +10,6 @@ namespace Themosis\Components\Config\Exceptions;
 
 use RuntimeException;
 
-final class UnsupportedReader extends RuntimeException {
+final class UnsupportedReader extends RuntimeException
+{
 }

@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Themosis\Components\Config\Reader;
 
-interface DirectoryReader extends Reader {
-	public function from_directory( string $directory_path ): void;
+interface DirectoryReader extends Reader
+{
+    public function fromDirectory(string $directoryPath): void;
 }

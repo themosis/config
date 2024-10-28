@@ -10,24 +10,27 @@ namespace Themosis\Components\Config\Reader;
 
 use Themosis\Components\Config\Exceptions\ReaderNotFound;
 
-final class InMemoryReaders implements Readers {
-	/**
-	 * @var array<string, FileReader>
-	 */
-	private array $readers = [];
+final class InMemoryReaders implements Readers
+{
+    /**
+     * @var array<string, FileReader>
+     */
+    private array $readers = [];
 
-	public function add( ReaderKey $key, FileReader $reader ): void {
-		$this->readers[ (string) $key ] = $reader;
-	}
+    public function add(ReaderKey $key, FileReader $reader): void
+    {
+        $this->readers[ (string) $key ] = $reader;
+    }
 
-	public function find( ReaderKey $key ): FileReader {
-		if ( ! isset( $this->readers[ (string) $key ] ) ) {
-			throw new ReaderNotFound(
-				key: $key,
-				message: sprintf( 'Reader not found for key with extension %s', (string) $key ),
-			);
-		}
+    public function find(ReaderKey $key): FileReader
+    {
+        if (! isset($this->readers[ (string) $key ])) {
+            throw new ReaderNotFound(
+                key: $key,
+                message: sprintf('Reader not found for key with extension %s', (string) $key),
+            );
+        }
 
-		return $this->readers[ (string) $key ];
-	}
+        return $this->readers[ (string) $key ];
+    }
 }

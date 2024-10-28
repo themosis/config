@@ -8,9 +8,10 @@ declare(strict_types=1);
 
 namespace Themosis\Components\Config\Reader;
 
-interface Reader {
-	/**
-	 * @return array<mixed>
-	 */
-	public function read(): array;
+interface Reader
+{
+    /**
+     * @return array<mixed>
+     */
+    public function read(): array;
 }

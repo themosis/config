@@ -10,5 +10,6 @@ namespace Themosis\Components\Config\Exceptions;
 
 use InvalidArgumentException;
 
-final class InvalidConfigurationDirectory extends InvalidArgumentException {
+final class InvalidConfigurationDirectory extends InvalidArgumentException
+{
 }

@@ -10,24 +10,27 @@ namespace Themosis\Components\Config\Reader;
 
 use Stringable;
 
-final class ReaderKey implements Stringable {
-	public function __construct(
-		private string $file_extension,
-	) {
-		$this->file_extension = trim( $file_extension, " \n\r\t\v\0." );
-	}
+final class ReaderKey implements Stringable
+{
+    public function __construct(
+        private string $fileExtension,
+    ) {
+        $this->fileExtension = trim($fileExtension, " \n\r\t\v\0.");
+    }
 
-	public function equals( ReaderKey ...$others ): bool {
-		foreach ( $others as $other ) {
-			if ( $this->file_extension === $other->file_extension ) {
-				return true;
-			}
-		}
+    public function equals(ReaderKey ...$others): bool
+    {
+        foreach ($others as $other) {
+            if ($this->fileExtension === $other->fileExtension) {
+                return true;
+            }
+        }
 
-		return false;
-	}
+        return false;
+    }
 
-	public function __toString(): string {
-		return $this->file_extension;
-	}
+    public function __toString(): string
+    {
+        return $this->fileExtension;
+    }
 }

@@ -8,6 +8,7 @@ declare(strict_types=1);
 
 namespace Themosis\Components\Config\Reader;
 
-interface FileReader extends Reader {
-	public function from_file( string $filepath ): void;
+interface FileReader extends Reader
+{
+    public function fromFile(string $filepath): void;
 }

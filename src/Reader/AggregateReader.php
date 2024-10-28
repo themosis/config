@@ -17,130 +17,142 @@ use Themosis\Components\Config\Exceptions\ReaderNotFound;
 use Themosis\Components\Config\Exceptions\UnsupportedReader;
 use Themosis\Components\Filesystem\Filesystem;
 
-final class AggregateReader implements DirectoryReader {
-	private string $directory_path;
+final class AggregateReader implements DirectoryReader
+{
+    private string $directoryPath;
 
-	/**
-	 * @var array<int,ReaderKey>
-	 */
-	private array $readers_to_ignore = [];
+    /**
+     * @var array<int,ReaderKey>
+     */
+    private array $readersToIgnore = [];
 
-	public function __construct(
-		private Filesystem $filesystem,
-		private Readers $readers,
-	) {
-	}
+    public function __construct(
+        private Filesystem $filesystem,
+        private Readers $readers,
+    ) {
+    }
 
-	public function ignore_reader( ReaderKey $key ): self {
-		$this->readers_to_ignore[] = $key;
+    public function ignoreReader(ReaderKey $key): self
+    {
+        $this->readersToIgnore[] = $key;
 
-		return $this;
-	}
+        return $this;
+    }
 
-	public function from_directory( string $directory_path ): void {
-		if ( ! $this->filesystem->is_directory( $directory_path ) ) {
-			throw new InvalidConfigurationDirectory(
-				message: sprintf( 'Invalid directory path given: %s', $directory_path ),
-			);
-		}
+    public function fromDirectory(string $directoryPath): void
+    {
+        if (! $this->filesystem->isDirectory($directoryPath)) {
+            throw new InvalidConfigurationDirectory(
+                message: sprintf('Invalid directory path given: %s', $directoryPath),
+            );
+        }
 
-		$this->directory_path = $directory_path;
-	}
+        $this->directoryPath = $directoryPath;
+    }
 
-	/**
-	 * @return array<string, mixed>
-	 */
-	public function read(): array {
-		$values = [];
+    /**
+     * @return array<string, mixed>
+     */
+    public function read(): array
+    {
+        $values = [];
 
-		$iterator = new RecursiveIteratorIterator(
-			iterator: new RecursiveDirectoryIterator(
-				directory: $this->directory_path,
-				flags: FilesystemIterator::CURRENT_AS_FILEINFO | FilesystemIterator::KEY_AS_PATHNAME | FilesystemIterator::SKIP_DOTS,
-			),
-			mode: RecursiveIteratorIterator::LEAVES_ONLY,
-		);
+        $iterator = new RecursiveIteratorIterator(
+            iterator: new RecursiveDirectoryIterator(
+                directory: $this->directoryPath,
+                flags: FilesystemIterator::CURRENT_AS_FILEINFO
+                    | FilesystemIterator::KEY_AS_PATHNAME
+                    | FilesystemIterator::SKIP_DOTS,
+            ),
+            mode: RecursiveIteratorIterator::LEAVES_ONLY,
+        );
 
-		foreach ( $iterator as $filepath => $file ) {
-			/**
-			 * @var string $filepath
-			 * @var SplFileInfo $file
-			 */
-			try {
-				$reader = $this->readers->find( new ReaderKey( $file->getExtension() ) );
-			} catch ( ReaderNotFound $exception ) {
-				if ( $this->reader_should_be_ignored( $exception->key ) ) {
-					continue;
-				}
+        foreach ($iterator as $filepath => $file) {
+            /**
+             * @var string $filepath
+             * @var SplFileInfo $file
+             */
+            try {
+                $reader = $this->readers->find(new ReaderKey($file->getExtension()));
+            } catch (ReaderNotFound $exception) {
+                if ($this->readerShouldBeIgnored($exception->key)) {
+                    continue;
+                }
 
-				throw new UnsupportedReader(
-					message: sprintf( 'Unsupported configuration file found in aggregate reader: %s', (string) $exception->key ),
-					code: 0,
-					previous: $exception,
-				);
-			}
+                throw new UnsupportedReader(
+                    message: sprintf(
+                        'Unsupported configuration file found in aggregate reader: %s',
+                        (string) $exception->key
+                    ),
+                    code: 0,
+                    previous: $exception,
+                );
+            }
 
-			$reader->from_file( $filepath );
+            $reader->fromFile($filepath);
 
-			$values = array_merge_recursive(
-				$values,
-				$this->get_configuration_values_for_file(
-					file: $file,
-					file_values: $reader->read()
-				),
-			);
-		}
+            $values = array_merge_recursive(
+                $values,
+                $this->getConfigurationValuesForFile(
+                    file: $file,
+                    fileValues: $reader->read()
+                ),
+            );
+        }
 
-		return $values;
-	}
+        return $values;
+    }
 
-	/**
-	 * @param SplFileInfo $file
-	 * @param array<string, mixed> $file_values
-	 *
-	 * @return array<string, mixed>
-	 */
-	private function get_configuration_values_for_file( SplFileInfo $file, array $file_values ): array {
-		return array_reduce(
-			$this->get_prefix_parts_for_configuration_file( $file ),
-			function ( array $carry, string $part ) {
-				$carry = [ $part => $carry ];
+    /**
+     * @param SplFileInfo $file
+     * @param array<string, mixed> $fileValues
+     *
+     * @return array<string, mixed>
+     */
+    private function getConfigurationValuesForFile(SplFileInfo $file, array $fileValues): array
+    {
+        return array_reduce(
+            $this->getPrefixPartsForConfigurationFile($file),
+            function (array $carry, string $part) {
+                $carry = [ $part => $carry ];
 
-				return $carry;
-			},
-			$file_values,
-		);
-	}
+                return $carry;
+            },
+            $fileValues,
+        );
+    }
 
-	/**
-	 * @param SplFileInfo $file
-	 *
-	 * @return array<int, string>
-	 */
-	private function get_prefix_parts_for_configuration_file( SplFileInfo $file ): array {
-		/**
-		 * $prefix can be one of these values:
-		 * - "" (empty string)
-		 * - "directory"
-		 * - "directory/child-directory"
-		 * - "directory/child-directory/grand-child-directory/..."
-		 *
-		 * The $prefix contains the parts found between the configuration file path and the
-		 * root directory. We need to nest the configuration values based on the directory
-		 * hierarchy. So instead of setting it up from top level to bottom level, we do the reverse
-		 * by building the nested array from the bottom up.
-		 */
-		$prefix       = trim( str_replace( $this->directory_path, '', $file->getPath() ), '\/ ' );
-		$prefix_parts = array_filter( explode( DIRECTORY_SEPARATOR, $prefix ) );
+    /**
+     * @param SplFileInfo $file
+     *
+     * @return array<int, string>
+     */
+    private function getPrefixPartsForConfigurationFile(SplFileInfo $file): array
+    {
+        /**
+         * $prefix can be one of these values:
+         * - "" (empty string)
+         * - "directory"
+         * - "directory/child-directory"
+         * - "directory/child-directory/grand-child-directory/..."
+         *
+         * The $prefix contains the parts found between the configuration file path and the
+         * root directory. We need to nest the configuration values based on the directory
+         * hierarchy. So instead of setting it up from top level to bottom level, we do the reverse
+         * by building the nested array from the bottom up.
+         */
+        $prefix = trim(str_replace($this->directoryPath, '', $file->getPath()), '\/ ');
+        $prefixParts = array_filter(explode(DIRECTORY_SEPARATOR, $prefix));
 
-		$basename = pathinfo( $file->getFilename(), PATHINFO_FILENAME );
+        $basename = pathinfo($file->getFilename(), PATHINFO_FILENAME);
 
-		array_push( $prefix_parts, $basename );
+        array_push($prefixParts, $basename);
 
-		return array_reverse( $prefix_parts );
-	}
+        return array_reverse($prefixParts);
+    }
 
-	private function reader_should_be_ignored( ReaderKey $key ): bool {
-		return $key->equals( ...$this->readers_to_ignore );
-	}
+    private function readerShouldBeIgnored(ReaderKey $key): bool
+    {
+        return $key->equals(...$this->readersToIgnore);
+    }
 }
