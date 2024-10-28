@@ -31,11 +31,9 @@ composer require themosis/config
 Usage
 -----
 
-The library exposes a `Configuration` interface and a concrete implementation `Config` class to let you access
-configuration values from any declared sources.
+The library exposes a `Configuration` interface and a concrete implementation `Config` class to let you access configuration values from any declared sources.
 
-Generally you declare a source `Reader` and pass it as a dependency to the `Config` concrete class. The `Config` class is
-responsible to access the values returned by the reader.
+Generally you declare a source `Reader` and pass it as a dependency to the `Config` concrete class. The `Config` class is responsible to access the values returned by the reader.
 
 > The `Config` instance is caching reader returned values at first `get()` method call.
 
@@ -66,15 +64,15 @@ use Themosis\Components\Config\Config;
 use Themosis\Components\Config\Reader\PhpReader;
 use Themosis\Components\Filesystem\LocalFilesystem;
 
-$reader = new PhpReader( new LocalFilesystem() );
-$reader->from_file( __DIR__ . '/config/app.php' );
+$reader = new PhpReader(new LocalFilesystem());
+$reader->fromFile(__DIR__ . '/config/app.php');
 
 $config = new Config( $reader );
 
-$config->get( 'name' ); // Themosis
-$config->get( 'debug' ); // true
-$config->get( 'wp.home' ); // https://themosis.com
-$config->get( 'wp.site' ); // https://themosis.com/cms
+$config->get('name'); // Themosis
+$config->get('debug'); // true
+$config->get('wp.home'); // https://themosis.com
+$config->get('wp.site'); // https://themosis.com/cms
 ```
 
 ### Read configuration from JSON
@@ -99,13 +97,13 @@ use Themosis\Components\Config\Config;
 use Themosis\Components\Config\Reader\JsonReader;
 use Themosis\Components\Filesystem\LocalFilesystem;
 
-$reader = new JsonReader( new LocalFilesystem() );
-$reader->from_file( __DIR__ . '/config/app.json' );
+$reader = new JsonReader(new LocalFilesystem());
+$reader->fromFile(__DIR__ . '/config/app.json');
 
-$config->get( 'name' ); // Themosis
-$config->get( 'debug' ); // true
-$config->get( 'wp.home' ); // https://themosis.com
-$config->get( 'wp.site' ); // https://themosis.com/cms
+$config->get('name'); // Themosis
+$config->get('debug'); // true
+$config->get('wp.home'); // https://themosis.com
+$config->get('wp.site'); // https://themosis.com/cms
 ```
 
 ### Read configuration files from directory
@@ -125,27 +123,25 @@ use Themosis\Components\Config\Reader\ReaderKey;
 use Themosis\Components\Filesystem\LocalFilesystem;
 
 $readers = new InMemoryReaders();
-$readers->add( new ReaderKey( 'php' ), new PhpReader( new LocalFilesystem() ) );
-$readers->add( new ReaderKey( 'json' ), new JsonReader( new LocalFilesystem() ) );
+$readers->add(new ReaderKey('php'), new PhpReader(new LocalFilesystem()));
+$readers->add(new ReaderKey('json'), new JsonReader(new LocalFilesystem()));
 
 $reader = new AggregateReader(
     filesystem: new LocalFilesystem(),
     readers: $readers,
 );
-$reader->from_directory( __DIR__ . '/config' );
+$reader->fromDirectory(__DIR__ . '/config');
 
-$config = new Config( $reader );
+$config = new Config($reader);
 ```
 
 The above code snippet is setting up the Configuration instance with the AggregateReader.
 The reader will look for configuration files stored in the `config` directory and will handle all
 encountered `php` and `json` files.
 
-By default, the AggregateReader can throw an `UnsupportedReader` exception if it tries to read a configuration
-file not declared in the received `Readers` repository.
+By default, the AggregateReader can throw an `UnsupportedReader` exception if it tries to read a configuration file not declared in the received `Readers` repository.
 
-When reading the configuration values from the `AggregateReader`, the first element of the dot syntax path given while
-calling the config `get()` method, is actually the configuration file name.
+When reading the configuration values from the `AggregateReader`, the first element of the dot syntax path given while calling the config `get()` method, is actually the configuration file name.
 
 Here an example of a "config" directory structure:
 
@@ -167,16 +163,16 @@ $reader = new AggregateReader(
     readers: $readers,
 );
 
-$reader->from_directory( __DIR__ . '/config' );
+$reader->fromDirectory(__DIR__ . '/config');
 
-$config = new Config( $reader );
+$config = new Config($reader);
 
-$config->get( 'app.name' ); // app.php => name: Themosis
-$config->get( 'app.debug' );// app.php => debug: true
+$config->get('app.name'); // app.php => name: Themosis
+$config->get('app.debug');// app.php => debug: true
 
-$config->get( 'database.connection.host' ); // database.php => connection => host: localhost
+$config->get('database.connection.host'); // database.php => connection => host: localhost
 
-$config->get( 'global.styles.colors' ); // global => styles.json => colors: [[...]]
+$config->get('global.styles.colors'); // global => styles.json => colors: [[...]]
 ```
 
 #### Ignore unsupported configuration files in aggregate reader
@@ -184,7 +180,7 @@ $config->get( 'global.styles.colors' ); // global => styles.json => colors: [[..
 As mentioned above, the AggregateReader can throw an `UnsupportedReader` exception if it tries to read a configuration
 that is not declared in the received `Readers` repository.
 
-You can tell the reader to ignore some file extensions while parsing the directory. To do so, use the `ignore_reader()` method:
+You can tell the reader to ignore some file extensions while parsing the directory. To do so, use the `ignoreReader()` method:
 
 ```php
 <?php
@@ -194,27 +190,26 @@ $reader = new AggregateReader(
     readers: $readers,
 );
 
-$reader->ignore_reader( new ReaderKey( 'yaml' ) );
-$reader->ignore_reader( new ReaderKey( 'ini' ) );
+$reader->ignoreReader(new ReaderKey('yaml'));
+$reader->ignoreReader(new ReaderKey('ini'));
 ```
 
 ### Default configuration value
 
-When using the config `get()` method, it is also possible to declare a default fallback value if the
-requested configuration value is not found:
+When using the config `get()` method, it is also possible to declare a default fallback value if the requested configuration value is not found:
 
 ```php
 <?php
 
 use Themosis\Components\Config\Config;
 
-$config = new Config( $reader );
+$config = new Config($reader);
 
-$config->get( 'do-not-exist' ); // null
-$config->get( 'do-not-exist', 'bar' ); // bar
-$config->get( 'do-not-exist', true ); // true
-$config->get( 'do-not-exist', 42 ); // 42
-$config->get( 'do-not-exist', [1,2,3] ); // 42
+$config->get('do-not-exist'); // null
+$config->get('do-not-exist', 'bar'); // bar
+$config->get('do-not-exist', true); // true
+$config->get('do-not-exist', 42); // 42
+$config->get('do-not-exist', [1,2,3]); // 42
 ```
 
 > By default, the fallback value is `null`.
@@ -266,22 +261,18 @@ $config = new Config(
 
 ### Refresh configuration
 
-As mentioned earlier, the first time you call the Config `get()` method, the values returned by a reader
-are cached in configuration instance. If for any reason, the configuration values, where you read them from, are
-changed in-between, either get a new instance of the config class or if you're working with an instance, you can
-call the `refresh()` method.
+As mentioned earlier, the first time you call the Config `get()` method, the values returned by a reader are cached in the configuration instance. If for any reason, the configuration values where you read them from, are changed in-between, either get a new instance of the config class or if you're working with an instance, you can call the `refresh()` method.
 
-The `refresh()` method will returned a new config instance for you with a fresh set of configuration values you can
-read from:
+The `refresh()` method will returned a new config instance for you with a fresh set of configuration values you can read from:
 
 ```php
 <?php
 
 use Themosis\Components\Config\Config;
 
-$config = new Config( $reader );
+$config = new Config($reader);
 
-$config->get( 'name' ); // Themosis
+$config->get('name'); // Themosis
 
 // Changes to original configuration file... where name is "Awesome App"
 
